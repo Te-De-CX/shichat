@@ -44,7 +44,7 @@ export default function PostScreen() {
           <Text className="font-bold">{post.authorId}</Text> {post.caption}
         </Text>
         <Text className="text-gray-400 text-xs mt-1">
-          {post.createdAt.toDate().toLocaleDateString()}
+          {/* {post.createdAt.toDate().toLocaleDateString()} */}
         </Text>
       </View>
       

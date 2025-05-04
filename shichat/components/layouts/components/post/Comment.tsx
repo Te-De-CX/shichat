@@ -1,7 +1,6 @@
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Comment } from '@/libs/types/types';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 interface CommentProps {
   comment: Comment;

@@ -1,5 +1,5 @@
+// useChats.ts
 import { useState, useEffect } from 'react';
-import { addDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { 
   collection, 
   query, 
@@ -8,50 +8,15 @@ import {
   orderBy,
   doc,
   getDoc,
+  addDoc,
   updateDoc,
   arrayUnion,
   serverTimestamp,
-  DocumentData
+  writeBatch,
+  getDocs
 } from 'firebase/firestore';
 import { db, auth } from '../provider/firebase';
-import { User } from '../types/types';
-import { Timestamp } from 'firebase/firestore';
-
-type orderProp = {
-  id: string,
-  otherUser: {
-    id: string,
-    username: string,
-    avatarUrl: string,
-  },
-  lastMessage: string | null,
-  createdAt: string
-  updatedAt: string
-}
-
-interface Chat {
-  id: string;
-  participants: string[];
-  lastMessage?: {
-    text: string;
-    senderId: string;
-    createdAt: Timestamp | Date;
-  };
-  unreadCounts: Record<string, number>;
-  updatedAt: Timestamp | Date;
-  isGroup: boolean;
-  groupInfo?: {
-    name: string;
-    adminIds: string[];
-    avatarUrl: string;
-  };
-  createdAt?: Date;
-  otherUser?: {
-    id: string;
-    username: string;
-    avatarUrl: string;
-  };
-}
+import { Chat, User } from '../types/types';
 
 export const useChats = () => {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -59,7 +24,10 @@ export const useChats = () => {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (!auth.currentUser?.uid) return;
+    if (!auth.currentUser?.uid) {
+      setLoading(false);
+      return;
+    }
 
     const q = query(
       collection(db, 'chats'),
@@ -73,38 +41,38 @@ export const useChats = () => {
         try {
           const chatsData = await Promise.all(
             snapshot.docs.map(async (doc) => {
-              const chatData = doc.data() as DocumentData;
-              // Get the other participant's data
-              const otherUserId = chatData.participants.find(
+              const data = doc.data();
+              const otherUserId = data.participants.find(
                 (id: string) => id !== auth.currentUser?.uid
               );
 
-              
-              let userData: Partial<User> = {};
-              if (otherUserId) {
+              let otherUser: User | undefined;
+              if (otherUserId && !data.isGroup) {
                 const userDoc = await getDoc(doc(db, 'users', otherUserId));
-                userData = userDoc.data() as User;
+                otherUser = userDoc.data() as User;
               }
 
               return {
                 id: doc.id,
-                ...chatData,
-                otherUser: {
-                  id: otherUserId,
-                  username: userData?.username || '',
-                  avatarUrl: userData?.avatarUrl || '',
-                },
-                lastMessage: chatData.lastMessage?.text ? {
-                  text: chatData.lastMessage.text,
-                  senderId: chatData.lastMessage.senderId,
-                  createdAt: chatData.lastMessage.createdAt?.toDate?.() || null,
-                } : null,
-                createdAt: chatData.createdAt?.toDate?.() || null,
-                updatedAt: chatData.updatedAt?.toDate?.() || null,
+                participants: data.participants,
+                lastMessage: data.lastMessage
+                  ? {
+                      text: data.lastMessage.text,
+                      senderId: data.lastMessage.senderId,
+                      createdAt: data.lastMessage.createdAt?.toDate(),
+                    }
+                  : undefined,
+                unreadCounts: data.unreadCounts || {},
+                updatedAt: data.updatedAt?.toDate(),
+                isGroup: data.isGroup || false,
+                groupInfo: data.groupInfo,
+                createdAt: data.createdAt?.toDate(),
+                otherUser,
+                participantData: data.participantData || {},
               } as Chat;
             })
           );
-          setChats(chatsData.filter(chat => chat.createdAt)); // Filter out invalid chats
+          setChats(chatsData);
           setLoading(false);
         } catch (err) {
           setError(err as Error);
@@ -120,23 +88,40 @@ export const useChats = () => {
     return unsubscribe;
   }, []);
 
-  const createChat = async (participantIds: string[]) => {
+  const createChat = async (participantIds: string[], isGroup = false, groupInfo?: any) => {
     try {
       if (!auth.currentUser?.uid) return null;
 
-      const participants = [...participantIds, auth.currentUser.uid];
-      const chatRef = await addDoc(collection(db, 'chats'), {
+      const participants = [...new Set([...participantIds, auth.currentUser.uid])];
+      
+      // Check if chat already exists (for 1:1 chats)
+      if (!isGroup && participants.length === 2) {
+        const existingChatQuery = query(
+          collection(db, 'chats'),
+          where('participants', '==', participants),
+          where('isGroup', '==', false)
+        );
+        
+        const existingChats = await getDocs(existingChatQuery);
+        if (!existingChats.empty) {
+          return existingChats.docs[0].id;
+        }
+      }
+
+      const chatData: any = {
         participants,
         lastMessage: null,
-        unreadCounts: {
-          [auth.currentUser.uid]: 0,
-          ...participantIds.reduce((acc, id) => ({ ...acc, [id]: 0 }), {}),
-        },
-        isGroup: participantIds.length > 1,
+        unreadCounts: participants.reduce((acc, id) => ({ ...acc, [id]: 0 }), {}),
+        isGroup,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      });
+      };
 
+      if (isGroup && groupInfo) {
+        chatData.groupInfo = groupInfo;
+      }
+
+      const chatRef = await addDoc(collection(db, 'chats'), chatData);
       return chatRef.id;
     } catch (err) {
       setError(err as Error);
@@ -146,12 +131,12 @@ export const useChats = () => {
 
   const sendMessage = async (chatId: string, text: string) => {
     try {
-      if (!auth.currentUser?.uid) return;
+      if (!auth.currentUser?.uid || !text.trim()) return;
 
-      const messagesRef = collection(db, 'chats', chatId, 'messages');
       const chatRef = doc(db, 'chats', chatId);
+      const messagesRef = collection(db, 'chats', chatId, 'messages');
 
-      // Add new message
+      // Add message
       await addDoc(messagesRef, {
         text,
         senderId: auth.currentUser.uid,
@@ -160,7 +145,7 @@ export const useChats = () => {
         readBy: [auth.currentUser.uid],
       });
 
-      // Update chat last message and unread counts
+      // Update chat metadata
       await updateDoc(chatRef, {
         lastMessage: {
           text,
@@ -172,6 +157,7 @@ export const useChats = () => {
       });
     } catch (err) {
       setError(err as Error);
+      throw err;
     }
   };
 
@@ -180,22 +166,24 @@ export const useChats = () => {
       if (!auth.currentUser?.uid) return;
 
       const chatRef = doc(db, 'chats', chatId);
+      const messagesRef = collection(db, 'chats', chatId, 'messages');
+
+      // Update chat unread count
       await updateDoc(chatRef, {
         [`unreadCounts.${auth.currentUser.uid}`]: 0,
       });
 
-      // Optionally mark all messages as read
-      const messagesRef = collection(db, 'chats', chatId, 'messages');
-      const q = query(
+      // Mark all unread messages as read
+      const unreadMessagesQuery = query(
         messagesRef,
         where('isRead', '==', false),
         where('senderId', '!=', auth.currentUser.uid)
       );
 
-      const snapshot = await getDocs(q);
+      const snapshot = await getDocs(unreadMessagesQuery);
       const batch = writeBatch(db);
-      snapshot.docs.forEach((doc) => {
-        batch.update(doc.ref, {
+      snapshot.docs.forEach((messageDoc) => {
+        batch.update(messageDoc.ref, {
           isRead: true,
           readBy: arrayUnion(auth.currentUser?.uid),
         });
