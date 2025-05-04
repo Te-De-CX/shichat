@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 interface PostActionsProps {
   postId: string;
-  isLiked: boolean;
+  isLiked?: boolean;
   onLike: () => void;
   onComment: () => void;
   onShare: () => void;

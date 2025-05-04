@@ -1,4 +1,4 @@
-import { View, Text, FlatList, TextInput } from 'react-native';
+import { View, Text, FlatList, TextInput, SafeAreaView } from 'react-native';
 import { useState } from 'react';
 import { useUsers } from '@/libs/hooks/useUsers';
 import UserCard from '@/components/layouts/components/search/UserCard';
@@ -8,7 +8,7 @@ export default function SearchScreen() {
   const { users, loading, error } = useUsers(searchQuery);
 
   return (
-    <View className="flex-1 bg-white p-4">
+    <SafeAreaView className="flex-1 bg-white p-4">
       <TextInput
         placeholder="Search users..."
         className="bg-gray-100 p-3 rounded-lg mb-4"
@@ -32,6 +32,6 @@ export default function SearchScreen() {
           }
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }

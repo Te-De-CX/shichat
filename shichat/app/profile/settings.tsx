@@ -1,9 +1,10 @@
 import { View, Text, TouchableOpacity, Switch } from 'react-native';
 import { useAuth } from '@/libs/services/AuthProvider';
 import { useState } from 'react';
+import { logout } from '@/libs/provider/auth';
 
 export default function SettingsScreen() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
 

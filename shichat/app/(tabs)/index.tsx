@@ -1,6 +1,6 @@
 import { View, Text, FlatList } from 'react-native';
 import { usePosts } from '@/libs/hooks/usePosts';
-import Posts from '@/components/layouts/components/post/Post';
+import Post from '@/components/layouts/components/post/Post'; // Renamed import to avoid confusion
 
 export default function HomeScreen() {
   const { posts, loading, error } = usePosts();
@@ -25,10 +25,25 @@ export default function HomeScreen() {
     <View className="flex-1 bg-white">
       <FlatList
         data={posts}
-        renderItem={({ item }) => <Posts post={item} />}
+        renderItem={({ item }) => <Post post={item} />}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        ListEmptyComponent={
+          <View className="flex-1 items-center justify-center">
+            <Text>No posts available</Text>
+          </View>
+        }
+        contentContainerStyle={{ 
+          paddingBottom: 20,
+          flexGrow: 1 // Ensures proper scrolling when few items
+        }}
       />
+      {/* {posts.map((post) => (
+        <View key={post.id} className="mb-6">
+          <Text>{post.id}</Text>
+          <Text>{post.createdAt.toString()}</Text>
+          <Text>{post.caption}</Text>
+          </View>
+      ))} */}
     </View>
   );
 }

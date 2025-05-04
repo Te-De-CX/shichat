@@ -24,7 +24,7 @@ export default function LoginScreen() {
         <Text className="text-black text-xl capitalize font-semibold">
           Don't have an account?{' '}
         </Text>
-        <Link href="/register" className="text-[#00463E] font-bold text-lg">
+        <Link href="/auth/register" className="text-[#00463E] font-bold text-lg">
           Sign Up
         </Link>
       </View>

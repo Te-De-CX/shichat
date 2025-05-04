@@ -1,15 +1,19 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
-import { User } from '@/libs/types/types';
 import { timeAgo } from '@/libs/helpers/helps';
+import { Timestamp } from 'firebase/firestore';
 
 interface PostHeaderProps {
   authorId: string;
-  createdAt: Date;
+  createdAt: Date | Timestamp;
 }
 
 export default function PostHeader({ authorId, createdAt }: PostHeaderProps) {
-  // In a real app, you'd fetch this from your useUser hook
+  // Convert Firestore Timestamp to Date if needed
+  const postDate = createdAt instanceof Timestamp 
+    ? createdAt.toDate() 
+    : createdAt;
+
   const author = {
     id: authorId,
     username: 'example_user',
@@ -30,7 +34,7 @@ export default function PostHeader({ authorId, createdAt }: PostHeaderProps) {
       
       <View className="flex-row items-center space-x-3">
         <Text className="text-gray-500 text-sm">
-          {timeAgo(createdAt)}
+          {timeAgo(postDate)}
         </Text>
         <TouchableOpacity>
           <Text className="font-bold">···</Text>

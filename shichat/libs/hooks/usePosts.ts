@@ -16,6 +16,8 @@ export const usePosts = () => {
         const postsData = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
+          // Convert Firestore Timestamps to Dates
+          createdAt: doc.data().createdAt.toDate(),
         })) as Post[];
         setPosts(postsData);
         setLoading(false);

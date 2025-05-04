@@ -32,7 +32,18 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#ffffff",
+          "sounds": ["./assets/notification-sound.wav"]
+        }
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging"
     ],
     "experiments": {
       "typedRoutes": true

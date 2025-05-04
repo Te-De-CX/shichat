@@ -26,7 +26,10 @@ export const useUsers = (searchQuery: string) => {
           where('username', '<=', searchQuery + '\uf8ff')
         );
         const snapshot = await getDocs(q);
-        const usersData = snapshot.docs.map(doc => doc.data() as User);
+        const usersData = snapshot.docs.map(doc => ({
+          id: doc.id, 
+          ...doc.data() as User
+        }));
         setUsers(usersData);
       } catch (err) {
         setError(err as Error);

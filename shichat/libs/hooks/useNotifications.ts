@@ -1,46 +1,84 @@
-import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '../provider/firebase';
-import { useAuth } from '../services/AuthProvider'
-import { Notification } from '../types/types';
+// import { useState, useEffect } from 'react';
+// import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+// import { db } from '../provider/firebase';
+// import { useAuth } from '../services/AuthProvider';
+// import { Notification } from '../types/types';
+// import { configureNotifications, requestNotificationPermissions } from '../services/notificationService';
+// import { getFCMToken, setupForegroundHandler } from '../services/firebaseMessageing'
 
-export const useNotifications = () => {
-  const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+// export const useNotifications = () => {
+//   const { user } = useAuth();
+//   const [notifications, setNotifications] = useState<Notification[]>([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    if (!user?.uid) return;
+//   // Initialize notifications
+//   useEffect(() => {
+//     const init = async () => {
+//       try {
+//         await configureNotifications();
+//         await requestNotificationPermissions();
+        
+//         if (user?.uid) {
+//           await getFCMToken(user.uid);
+//         }
+//       } catch (error) {
+//         console.error('Notification initialization error:', error);
+//       }
+//     };
 
-    const q = query(
-      collection(db, 'notifications'),
-      where('recipientId', '==', user.uid),
-      where('isRead', '==', false)
-    );
+//     init();
+//   }, [user?.uid]);
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const notificationsData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Notification[];
-        setNotifications(notificationsData);
-        setLoading(false);
-      },
-      (err) => {
-        setError(err);
-        setLoading(false);
-      }
-    );
+//   // Setup foreground message handler
+//   useEffect(() => {
+//     const unsubscribeForeground = setupForegroundHandler();
+//     return unsubscribeForeground;
+//   }, []);
 
-    return unsubscribe;
-  }, [user?.uid]);
+//   // Fetch notifications from Firestore
+//   useEffect(() => {
+//     if (!user?.uid) return;
 
-  return {
-    notifications,
-    loading,
-    error,
-  };
-};
+//     const q = query(
+//       collection(db, 'notifications'),
+//       where('recipientId', '==', user.uid),
+//       where('isRead', '==', false)
+//     );
+
+//     const unsubscribe = onSnapshot(
+//       q,
+//       (snapshot) => {
+//         const notificationsData = snapshot.docs.map(doc => ({
+//           id: doc.id,
+//           ...doc.data()
+//         })) as Notification[];
+//         setNotifications(notificationsData);
+//         setLoading(false);
+//       },
+//       (err) => {
+//         setError(err);
+//         setLoading(false);
+//       }
+//     );
+
+//     return unsubscribe;
+//   }, [user?.uid]);
+
+//   const markAsRead = async (notificationId: string) => {
+//     try {
+//       await updateDoc(doc(db, 'notifications', notificationId), {
+//         isRead: true
+//       });
+//     } catch (err) {
+//       setError(err as Error);
+//     }
+//   };
+
+//   return {
+//     notifications,
+//     loading,
+//     error,
+//     markAsRead,
+//   };
+// };

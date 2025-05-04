@@ -5,7 +5,9 @@ interface BaseDocument {
   createdAt:  Timestamp | Date;
 }
 
-export interface User extends BaseDocument {
+export interface User  {
+  id?: string;
+  uid: string;
   username: string;
   email: string;
   fullName: string;

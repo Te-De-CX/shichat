@@ -1,4 +1,4 @@
-import { View, Text, FlatList } from 'react-native';
+import { View, Text, FlatList, SafeAreaView } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useUser } from '@/libs/hooks/useUser';
 import { useUserPosts } from '@/libs/hooks/useUserPosts';
@@ -26,9 +26,9 @@ export default function UserProfileScreen() {
     );
   }
 
-  return (
-    <View className="flex-1 bg-white">
-      <ProfileHeader user={user} isCurrentUser={false} />
+  return (    
+    <SafeAreaView className="flex-1 pt-20 bg-white">
+      <ProfileHeader user={user} />
       
       {postsLoading ? (
         <Text className="text-center mt-8">Loading posts...</Text>
@@ -51,5 +51,5 @@ export default function UserProfileScreen() {
           }
         />
       )}
-   </View>
+   </SafeAreaView>
   )}

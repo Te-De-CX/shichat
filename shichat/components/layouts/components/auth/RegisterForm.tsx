@@ -7,15 +7,12 @@ import { TouchableOpacity } from 'react-native';
 import { useState } from 'react';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-// Define your navigation stack types
 type AuthStackParamList = {
   Login: undefined;
   ForgotPassword: undefined;
-  // Add other screens here
 };
 
 type AuthNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
-
 
 type FormData = {
   email: string;
@@ -48,8 +45,21 @@ const RegisterForm = () => {
   const onSubmit = async (data: FormData) => {
     try {
       setLoading(true);
-      await registerWithEmail(data.email, data.password, data.username);
-      // Navigation handled by auth state change in AuthProvider
+      
+      // Register user with all data including fullName
+      await registerWithEmail(
+        data.email,
+        data.password,
+        data.username,
+        data.fullName
+      );
+
+      // Show success message
+      Alert.alert('Success', 'Account created successfully!');
+      
+      // Optionally navigate to login or home screen
+      // navigation.navigate('Login');
+      
     } catch (error: any) {
       let errorMessage = 'Registration failed. Please try again.';
       
@@ -63,6 +73,12 @@ const RegisterForm = () => {
         case 'auth/weak-password':
           errorMessage = 'Password should be at least 6 characters';
           break;
+        case 'username-taken':
+          errorMessage = error.message || 'Username is already taken';
+          break;
+        case 'permission-denied':
+          errorMessage = 'Database operation failed';
+          break;
       }
       
       Alert.alert('Error', errorMessage);
@@ -72,7 +88,8 @@ const RegisterForm = () => {
   };
 
   return (
-    <View className="space-y-4">
+    <View className="space-y-4 p-4">
+      {/* Email Input */}
       <Controller
         control={control}
         rules={{
@@ -101,6 +118,7 @@ const RegisterForm = () => {
         <Text className="text-red-500 text-sm">{errors.email.message}</Text>
       )}
 
+      {/* Username Input */}
       <Controller
         control={control}
         rules={{
@@ -136,6 +154,7 @@ const RegisterForm = () => {
         <Text className="text-red-500 text-sm">{errors.username.message}</Text>
       )}
 
+      {/* Full Name Input */}
       <Controller
         control={control}
         rules={{
@@ -162,6 +181,7 @@ const RegisterForm = () => {
         <Text className="text-red-500 text-sm">{errors.fullName.message}</Text>
       )}
 
+      {/* Password Input */}
       <Controller
         control={control}
         rules={{
@@ -195,6 +215,7 @@ const RegisterForm = () => {
         <Text className="text-red-500 text-sm">{errors.password.message}</Text>
       )}
 
+      {/* Confirm Password Input */}
       <Controller
         control={control}
         rules={{
@@ -220,6 +241,7 @@ const RegisterForm = () => {
         <Text className="text-red-500 text-sm">{errors.confirmPassword.message}</Text>
       )}
 
+      {/* Submit Button */}
       <TouchableOpacity
         className="bg-[#01FFE1] py-3 rounded-lg items-center justify-center mt-4"
         onPress={handleSubmit(onSubmit)}
@@ -230,6 +252,7 @@ const RegisterForm = () => {
         </Text>
       </TouchableOpacity>
 
+      {/* Login Link */}
       <View className="flex-row justify-center mt-4">
         <Text className="text-gray-600">Already have an account? </Text>
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>

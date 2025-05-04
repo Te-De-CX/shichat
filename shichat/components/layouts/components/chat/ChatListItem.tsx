@@ -27,7 +27,7 @@ export default function ChatListItem({ chat }: ChatListItemProps) {
           <View className="flex-row justify-between items-center">
             <Text className="font-bold">{otherUser.username}</Text>
             <Text className="text-gray-500 text-xs">
-              {timeAgo(chat.lastMessage?.createdAt?.toDate() || new Date())}
+              {/* {timeAgo(chat.lastMessage?.createdAt?.toDate() || new Date())} */}
             </Text>
           </View>
           <Text 
@@ -39,7 +39,7 @@ export default function ChatListItem({ chat }: ChatListItemProps) {
         </View>
         {chat.unreadCounts[auth.currentUser?.uid || ''] > 0 && (
           <View className="bg-blue-500 w-5 h-5 rounded-full items-center justify-center ml-2">
-            <Text className="text-white text-xs">
+            <Text className="text-black text-xs">
               {chat.unreadCounts[auth.currentUser?.uid || '']}
             </Text>
           </View>

@@ -3,6 +3,8 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider  } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getFunctions } from "firebase/functions";
+// import { getMessaging } from "firebase/messaging";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyCkRgKM5XUGqn2eIPJmTK9eQ9Z6CmbKnB0",
@@ -20,10 +22,12 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 const functions = getFunctions(app);
 const db = getFirestore(app);
+// const messaging = getMessaging(app);
 
 export { 
   auth, 
   functions, 
   provider,
-  db
+  db,
+  app
 };

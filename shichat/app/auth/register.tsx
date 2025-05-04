@@ -21,12 +21,6 @@ export default function RegisterScreen() {
       <RegisterForm />
 
       <View className="mt-6 mb-5 flex-row justify-center items-center">
-        <Text className="text-black text-xl capitalize font-semibold">
-          Already have an account?{' '}
-        </Text>
-        <Link href="/login" className="text-[#00463E] font-bold text-lg">
-          Sign In
-        </Link>
       </View>
     </View>
   );

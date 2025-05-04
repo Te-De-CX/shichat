@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   collection, 
   query, 
   where, 
   onSnapshot, 
-  orderBy  // Add this import
+  orderBy,
+  QuerySnapshot,
+  DocumentData
 } from 'firebase/firestore';
 import { db } from '../provider/firebase';
 import { Post } from '../types/types';
@@ -13,35 +15,65 @@ export const useUserPosts = (userId: string) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [hasIndexError, setHasIndexError] = useState(false);
+
+  const processSnapshot = useCallback((snapshot: QuerySnapshot<DocumentData>) => {
+    const postsData = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.() || new Date()
+      } as Post;
+    });
+    setPosts(postsData);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
 
-    const q = query(
-      collection(db, 'posts'),
-      where('authorId', '==', userId),
-      orderBy('createdAt', 'desc')
-    );
+    setLoading(true);
+    setError(null);
+    setHasIndexError(false);
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const postsData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: doc.data().createdAt.toDate()
-        })) as Post[];
-        setPosts(postsData);
-        setLoading(false);
-      },
-      (err) => {
-        setError(err);
-        setLoading(false);
-      }
-    );
+    try {
+      const q = query(
+        collection(db, 'posts'),
+        where('authorId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
 
-    return unsubscribe;
-  }, [userId]);
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => processSnapshot(snapshot),
+        (err) => {
+          if (err.message.includes('index')) {
+            setHasIndexError(true);
+          }
+          setError(err);
+          setLoading(false);
+        }
+      );
 
-  return { posts, loading, error };
+      return unsubscribe;
+    } catch (err) {
+      setError(err as Error);
+      setLoading(false);
+    }
+  }, [userId, processSnapshot]);
+
+  return { 
+    posts, 
+    loading, 
+    error,
+    hasIndexError,
+    refresh: () => {
+      setLoading(true);
+      setError(null);
+    }
+  };
 };

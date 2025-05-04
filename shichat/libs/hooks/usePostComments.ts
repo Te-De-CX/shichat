@@ -40,10 +40,9 @@ export const usePostComments = (postId: string) => {
         const commentsData:commentsDataProp = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-          // Add proper typing for the author data
           author: {
             id: doc.data().authorId,
-            username: '', // These would come from a user lookup
+            username: '',
             avatarUrl: ''
           },
           createdAt: doc.data().createdAt.toDate()
@@ -71,8 +70,6 @@ export const usePostComments = (postId: string) => {
         repliesCount: 0,
         createdAt: serverTimestamp()  // Better than new Date()
       });
-      
-      // Update post comments count
       await updateDoc(doc(db, 'posts', postId), {
         commentsCount: increment(1)
       });

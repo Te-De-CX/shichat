@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { AuthProvider } from '@/libs/services/AuthProvider';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider } from '@/components/ThemeProvider'
+import '../global.css'
 
 export default function RootLayout() {
   return (
