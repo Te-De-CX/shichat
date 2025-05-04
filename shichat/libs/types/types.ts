@@ -108,9 +108,9 @@ export interface Status {
   id: string;
   userId: string;
   text: string;
-  backgroundColor?: string; // Optional background color
-  textColor?: string; // Optional text color
-  createdAt: Timestamp;
-  expiresAt: Timestamp; // 24 hours after creation
-  viewers: string[]; // Array of user IDs who viewed the status
+  backgroundColor?: string;
+  textColor?: string;
+  createdAt: Date;
+  expiresAt: Date;
+  viewers: string[];
 }
